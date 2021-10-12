@@ -5,7 +5,9 @@ class LogisticRegression:
     
     def __init__(self, device):
         self.device=device
-    
+        self.w: T.tensor = T.zeros((2), dtype=T.float32, requires_grad=True).to(device)
+        self.b: T.tensor = T.zeros((1), dtype=T.float32, requires_grad=True).to(device)
+                
     @staticmethod
     def forward(
         x: T.tensor, 
@@ -26,9 +28,9 @@ class LogisticRegression:
         return p
     
     def random_w_and_b(self): 
-       """
-       Метод для рандомизации (начального задания) коэффициентов w и b
-       """
+        """
+        Метод для рандомизации (начального задания) коэффициентов w и b
+        """
         
         # границы для случайной величины
         lo = -0.01; hi = 0.01
@@ -91,8 +93,8 @@ class LogisticRegression:
                 # Суммарный loss
                 tot_loss = loss+tot_loss
 
-        #     tot_loss = tot_loss + T.norm(w, p=2) # l2 reg
-        #     tot_loss = tot_loss + T.norm(w, p=1) # l1 reg
+#             tot_loss = tot_loss + T.norm(w, p=2) # l2 reg
+#             tot_loss = tot_loss + T.norm(w, p=1) # l1 reg
 
             tot_loss.backward(retain_graph=True)  # compute gradients
 
@@ -102,8 +104,25 @@ class LogisticRegression:
             w.grad = T.zeros(2)
             b.grad = T.zeros(1)
 
-            if epoch % 10 == 0:
-                print("epoch = %4d " % epoch, end="")
-                print("   loss = %6.4f" % (tot_loss / 6))
+#             if epoch % 10 == 0:
+#                 print("epoch = %4d " % epoch, end="")
+#                 print("   loss = %6.4f" % (tot_loss / 6))
 
-        return w
+        self.w = w
+        self.b = b
+                
+        return w, b
+
+    
+    def predict(self, x):
+
+        p = np.empty(len(x), dtype = np.float32)
+        i = 0
+        for x_i in x:
+            p[i] = self.forward(x_i, self.w, self.b)
+            i = i + 1    
+        
+        return p
+        
+        
+        
