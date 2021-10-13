@@ -4,11 +4,12 @@ import torch as T
 
 class MyLogisticRegression:
 
-    def __init__(self, device):
+    def __init__(self, device, num_of_features):
         self.device = device
-        self.w: T.tensor = T.zeros((2), dtype=T.float32, requires_grad=True).to(device)
+        self.w: T.tensor = T.zeros((num_of_features), dtype=T.float32, requires_grad=True).to(device)
         self.b: T.tensor = T.zeros((1), dtype=T.float32, requires_grad=True).to(device)
-
+        self.num_of_features = num_of_features
+            
     @staticmethod
     def forward(
             x: T.tensor,
@@ -39,13 +40,13 @@ class MyLogisticRegression:
 
         # Начинаем со случайных величин
         # 2 - 2 признака, low, high - границы сверху и снизу
-        w = T.rand((2), dtype=T.float32, requires_grad=True).to(self.device)
+        w = T.rand((self.num_of_features), dtype=T.float32, requires_grad=True).to(self.device)
 
         # Нормируем на low-high
         w = (hi - lo) * w + lo
 
         # Зададим градиент
-        w.grad = T.zeros(2)
+        w.grad = T.zeros(self.num_of_features)
         w.retain_grad()
 
         # Зададим свобоный член
@@ -84,7 +85,7 @@ class MyLogisticRegression:
                 i = indices[ii]
                 x = train_x[i]
                 target = train_y[i]
-
+                
                 # Считаем вероятность 
                 oupt = self.forward(x, w, b)
 
@@ -102,12 +103,12 @@ class MyLogisticRegression:
             w.data += -1 * lrn_rate * w.grad.data
             b.data += -1 * lrn_rate * b.grad.data
 
-            w.grad = T.zeros(2)
+            w.grad = T.zeros(self.num_of_features)
             b.grad = T.zeros(1)
 
-        #             if epoch % 10 == 0:
-        #                 print("epoch = %4d " % epoch, end="")
-        #                 print("   loss = %6.4f" % (tot_loss / 6))
+            if epoch % 1 == 0:
+                print("epoch = %4d " % epoch, end="")
+                print("   loss = %6.4f" % (tot_loss / 6))
 
         self.w = w
         self.b = b
