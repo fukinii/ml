@@ -1,16 +1,65 @@
-# This is a sample Python script.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from src.decision_tree import DecisionTree
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+decision_tree = DecisionTree(2, 1)
+
+dataset = [[2.771244718, 1.784783929, 0],
+           [1.728571309, 1.169761413, 0],
+           [3.678319846, 2.81281357, 0],
+           [3.961043357, 2.61995032, 0],
+           [2.999208922, 2.209014212, 0],
+           [7.497545867, 3.162953546, 1],
+           [9.00220326, 3.339047188, 1],
+           [7.444542326, 0.476683375, 1],
+           [10.12493903, 3.234550982, 1],
+           [6.642287351, 3.319983761, 1]]
+
+root = decision_tree.build_tree(dataset)
+
+print(root)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+
+
+
+
+
+
+
+
+
+# groups = [[[1, 1], [1, 0]], [[1, 1], [1, 0]]]
+#
+# classes = [0, 1]
+#
+# res = calc_gini(groups=groups, classes=classes)
+#
+# print(res)
+# print(calc_gini([[[1, 0], [1, 0]], [[1, 1], [1, 1]]], [0, 1]))
+#
+# dataset = [[1, 2], [1, 0], [1, 2], [1, 0]]
+#
+# left, right = do_split(1, 1, dataset)
+#
+# print(left, right)
+#
+# dataset = [[2.771244718, 1.784783929, 0],
+#            [1.728571309, 1.169761413, 0],
+#            [3.678319846, 2.81281357, 0],
+#            [3.961043357, 2.61995032, 0],
+#            [2.999208922, 2.209014212, 0],
+#            [7.497545867, 3.162953546, 1],
+#            [9.00220326, 3.339047188, 1],
+#            [7.444542326, 0.476683375, 1],
+#            [10.12493903, 3.234550982, 1],
+#            [6.642287351, 3.319983761, 1]]
+#
+# split = get_split(dataset)
+# # print('Split: [X%d < %.3f]' % ((split['index']+1), split['value']))
+# print(split['groups'][0])
+# print(split['groups'][1])
+
