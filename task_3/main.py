@@ -17,7 +17,14 @@ dataset = [[2.771244718, 1.784783929, 0],
 
 root = decision_tree.build_tree(dataset)
 
-print(root)
+print(root.data_dict)
+
+# a = 1
+#
+for row in dataset:
+    prediction = decision_tree.predict(root, row)
+    print('Expected=%d, Got=%d' % (row[-1], prediction))
+
 
 
 

@@ -19,8 +19,8 @@ class DecisionTree:
             if data_dict is None:
                 data_dict = {}
 
-            self.left: Union[DecisionTree.TreeBinaryNode, float] = left_node
-            self.right: Union[DecisionTree.TreeBinaryNode, float] = right_node
+            self.left: Union[DecisionTree.TreeBinaryNode, int] = left_node
+            self.right: Union[DecisionTree.TreeBinaryNode, int] = right_node
             self.data_dict: Dict = data_dict
 
         def set_left_as_node(self, left_node):
@@ -119,7 +119,7 @@ class DecisionTree:
         return out
 
     @staticmethod
-    def create_value_of_last_node(group):
+    def create_value_of_last_node(group) -> int:
         outcomes = [row[-1] for row in group]
         return max(set(outcomes), key=outcomes.count)
 
@@ -132,42 +132,19 @@ class DecisionTree:
             return
 
         if current_depth >= self.max_depth:
-            node.left = self.TreeBinaryNode(left_node=self.create_value_of_last_node(left_list))
-            node.right = self.TreeBinaryNode(left_node=self.create_value_of_last_node(right_list))
+            node.left = self.create_value_of_last_node(left_list)
+            node.right = self.create_value_of_last_node(right_list)
             return
 
-        # if len(left_list) <= self.min_node_size:
-        #     node.left = self.TreeBinaryNode(left_node=self.create_value_of_last_node(left_list))
-        #     return
-        # else:
-        #     node.left = self.TreeBinaryNode(left_node=None, right_node=None,
-        #                                     data_dict=self.do_full_one_node_split(left_list))
-        #     self.do_split(node=node.left, current_depth=current_depth + 1)
-        #
-        # if len(right_list) <= self.min_node_size:
-        #     node.right = self.TreeBinaryNode(right_node=self.create_value_of_last_node(right_list))
-        #     return
-        # else:
-        #     node.right = self.TreeBinaryNode(left_node=None, right_node=None,
-        #                                      data_dict=self.do_full_one_node_split(right_list))
-        #     self.do_split(node=node.right, current_depth=current_depth + 1)
+        node.left = self.do_recurse(data_list=left_list, depth=current_depth)
+        node.right = self.do_recurse(data_list=right_list, depth=current_depth)
 
-        node.left = self.do_recurse(data_list=left_list, depth=current_depth, i=-1)
-        node.right = self.do_recurse(data_list=right_list, depth=current_depth, i=1)
-
-    def do_recurse(self, data_list, depth, i):
-        node: DecisionTree.TreeBinaryNode = DecisionTree.TreeBinaryNode()
-
+    def do_recurse(self, data_list, depth):
         if len(data_list) <= self.min_node_size:
-            if i == -1:
-                node = self.TreeBinaryNode(left_node=self.create_value_of_last_node(data_list))
-            elif i == 1:
-                node = self.TreeBinaryNode(right_node=self.create_value_of_last_node(data_list))
-            else:
-                assert "Некорректный ввод i"
+            node: int = self.create_value_of_last_node(data_list)
         else:
-            node = self.TreeBinaryNode(left_node=None, right_node=None,
-                                       data_dict=self.do_full_one_node_split(data_list))
+            node: DecisionTree.TreeBinaryNode = self.TreeBinaryNode(left_node=None, right_node=None,
+                                                                    data_dict=self.do_full_one_node_split(data_list))
             self.do_split(node=node, current_depth=depth + 1)
 
         return node
@@ -177,3 +154,16 @@ class DecisionTree:
         root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
         self.do_split(root_node, 1)
         return root_node
+
+    def predict(self, node, row):
+
+        if row[node.data_dict['index']] < node.data_dict['value']:
+            if type(node.left) == DecisionTree.TreeBinaryNode:
+                return self.predict(node=node.left, row=row)
+            else:
+                return node.left
+        else:
+            if type(node.right) == DecisionTree.TreeBinaryNode:
+                return self.predict(node=node.right, row=row)
+            else:
+                return node.right
