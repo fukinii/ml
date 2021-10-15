@@ -30,10 +30,10 @@ class DecisionTree:
             self.left: int = left_num
 
         def set_right_as_node(self, right_node):
-            self.left: DecisionTree.TreeBinaryNode = right_node
+            self.right: DecisionTree.TreeBinaryNode = right_node
 
         def set_right_as_num(self, right_num: int):
-            self.left: int = right_num
+            self.right: int = right_num
 
     class TreeNonBinaryNode:
         def __init__(self, data):
@@ -108,7 +108,6 @@ class DecisionTree:
             for row in data:
                 groups = self.do_single_split(index, row[index], data)
                 gini = self.calc_gini(groups, classes)
-                # print('X%d < %.3f Gini=%.3f' % ((index + 1), row[index], gini))
                 if gini < best_gini:
                     split_index, split_value, best_gini, best_split = index, row[index], gini, groups
 
@@ -132,14 +131,17 @@ class DecisionTree:
             return
 
         if current_depth >= self.max_depth:
-            node.left = self.create_value_of_last_node(left_list)
-            node.right = self.create_value_of_last_node(right_list)
+            node.set_left_as_num(self.create_value_of_last_node(left_list))
+            node.set_right_as_num(self.create_value_of_last_node(right_list))
             return
 
         node.left = self.do_recurse(data_list=left_list, depth=current_depth)
         node.right = self.do_recurse(data_list=right_list, depth=current_depth)
 
     def do_recurse(self, data_list, depth):
+
+        node: Union[DecisionTree.TreeBinaryNode, int]
+
         if len(data_list) <= self.min_node_size:
             node: int = self.create_value_of_last_node(data_list)
         else:

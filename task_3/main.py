@@ -1,72 +1,51 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+data = pd.read_csv('Shanghai_HMT_2010.csv')
+
+# data.info()
+data = data.dropna()
+data = data.drop(['cbwd'], axis=1)
+# data = (data - data.mean()) / data.std()
+
+pres_median = data['PRES'].median()
+# print(pres_median)
+
+data['PRES'] = (data['PRES'] > pres_median).astype('int64')
+
+# print(data.head(10))
 
 from src.decision_tree import DecisionTree
 
+X = data.drop(['PRES'], axis=1)
+y = data['PRES']
 
-decision_tree = DecisionTree(3, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
-dataset = [[2.771244718, 1.784783929, 0],
-           [1.728571309, 1.169761413, 0],
-           [3.678319846, 2.81281357, 0],
-           [3.961043357, 2.61995032, 0],
-           [2.999208922, 2.209014212, 0],
-           [7.497545867, 3.162953546, 1],
-           [9.00220326, 3.339047188, 1],
-           [7.444542326, 0.476683375, 1],
-           [10.12493903, 3.234550982, 1],
-           [6.642287351, 3.319983761, 1]]
+X_train_numpy = X_train.to_numpy()
+y_train_numpy = y_train.to_numpy()
+
+print(X_train)
+print(y_train)
+
+print(X_train_numpy)
+print(y_train_numpy)
+
+y_train_numpy = y_train_numpy.reshape((1, len(y_train_numpy))).transpose().astype(int)
+
+print(y_train_numpy)
+
+dataset = np.concatenate((X_train_numpy, y_train_numpy), axis=1)
+
+print(dataset)
+
+
+decision_tree = DecisionTree(5, 1)
+
 
 root = decision_tree.build_tree(dataset)
 
-print(root.data_dict)
-
-# a = 1
-#
 for row in dataset:
     prediction = decision_tree.predict(root, row)
     print('Expected=%d, Got=%d' % (row[-1], prediction))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# groups = [[[1, 1], [1, 0]], [[1, 1], [1, 0]]]
-#
-# classes = [0, 1]
-#
-# res = calc_gini(groups=groups, classes=classes)
-#
-# print(res)
-# print(calc_gini([[[1, 0], [1, 0]], [[1, 1], [1, 1]]], [0, 1]))
-#
-# dataset = [[1, 2], [1, 0], [1, 2], [1, 0]]
-#
-# left, right = do_split(1, 1, dataset)
-#
-# print(left, right)
-#
-# dataset = [[2.771244718, 1.784783929, 0],
-#            [1.728571309, 1.169761413, 0],
-#            [3.678319846, 2.81281357, 0],
-#            [3.961043357, 2.61995032, 0],
-#            [2.999208922, 2.209014212, 0],
-#            [7.497545867, 3.162953546, 1],
-#            [9.00220326, 3.339047188, 1],
-#            [7.444542326, 0.476683375, 1],
-#            [10.12493903, 3.234550982, 1],
-#            [6.642287351, 3.319983761, 1]]
-#
-# split = get_split(dataset)
-# # print('Split: [X%d < %.3f]' % ((split['index']+1), split['value']))
-# print(split['groups'][0])
-# print(split['groups'][1])
-
