@@ -2,7 +2,7 @@
 from src.decision_tree import DecisionTree
 
 
-decision_tree = DecisionTree(2, 1)
+decision_tree = DecisionTree(3, 1)
 
 dataset = [[2.771244718, 1.784783929, 0],
            [1.728571309, 1.169761413, 0],

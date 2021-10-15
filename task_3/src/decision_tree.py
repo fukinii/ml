@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from typing import Dict, Type, Sequence, Optional, List, Any, Union
+from typing import Dict, List, Any, Union
 
 
 class DecisionTree:
@@ -95,7 +95,7 @@ class DecisionTree:
 
         return [left, right]
 
-    def get_split(
+    def do_full_one_node_split(
             self,
             data: List
     ) -> Dict[str, Any]:
@@ -123,7 +123,7 @@ class DecisionTree:
         outcomes = [row[-1] for row in group]
         return max(set(outcomes), key=outcomes.count)
 
-    def split(self, node: TreeBinaryNode, current_depth):
+    def do_split(self, node: TreeBinaryNode, current_depth):
         left_list, right_list = node.data_dict['groups']
         del (node.data_dict['groups'])
 
@@ -136,34 +136,44 @@ class DecisionTree:
             node.right = self.TreeBinaryNode(left_node=self.create_value_of_last_node(right_list))
             return
 
-        if len(left_list) <= self.min_node_size:
-            node.left = self.TreeBinaryNode(left_node=self.create_value_of_last_node(left_list))
-            return
-        else:
-            node.left = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=self.get_split(left_list))
-            self.split(node=node.left, current_depth=current_depth + 1)
+        # if len(left_list) <= self.min_node_size:
+        #     node.left = self.TreeBinaryNode(left_node=self.create_value_of_last_node(left_list))
+        #     return
+        # else:
+        #     node.left = self.TreeBinaryNode(left_node=None, right_node=None,
+        #                                     data_dict=self.do_full_one_node_split(left_list))
+        #     self.do_split(node=node.left, current_depth=current_depth + 1)
+        #
+        # if len(right_list) <= self.min_node_size:
+        #     node.right = self.TreeBinaryNode(right_node=self.create_value_of_last_node(right_list))
+        #     return
+        # else:
+        #     node.right = self.TreeBinaryNode(left_node=None, right_node=None,
+        #                                      data_dict=self.do_full_one_node_split(right_list))
+        #     self.do_split(node=node.right, current_depth=current_depth + 1)
 
-        if len(right_list) <= self.min_node_size:
-            node.right = self.TreeBinaryNode(right_node=self.create_value_of_last_node(right_list))
-            return
-        else:
-            node.right = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=self.get_split(right_list))
-            self.split(node=node.right, current_depth=current_depth + 1)
+        node.left = self.do_recurse(data_list=left_list, depth=current_depth, i=-1)
+        node.right = self.do_recurse(data_list=right_list, depth=current_depth, i=1)
 
-    #     node.left = self.do_recurse(data_list=left_list, depth=current_depth)
-    #     node.right = self.do_recurse(data_list=right_list, depth=current_depth)
-    #
-    # def do_recurse(self, data_list, depth):
-    #     if len(data_list) <= self.min_node_size:
-    #         node = self.TreeBinaryNode(left_node=self.create_value_of_last_node(data_list))
-    #     else:
-    #         node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=self.get_split(data_list))
-    #         self.split(node=node, current_depth=depth + 1)
+    def do_recurse(self, data_list, depth, i):
+        node: DecisionTree.TreeBinaryNode = DecisionTree.TreeBinaryNode()
+
+        if len(data_list) <= self.min_node_size:
+            if i == -1:
+                node = self.TreeBinaryNode(left_node=self.create_value_of_last_node(data_list))
+            elif i == 1:
+                node = self.TreeBinaryNode(right_node=self.create_value_of_last_node(data_list))
+            else:
+                assert "Некорректный ввод i"
+        else:
+            node = self.TreeBinaryNode(left_node=None, right_node=None,
+                                       data_dict=self.do_full_one_node_split(data_list))
+            self.do_split(node=node, current_depth=depth + 1)
 
         return node
 
     def build_tree(self, data):
-        root = self.get_split(data)
+        root = self.do_full_one_node_split(data)
         root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
-        self.split(root_node, 1)
+        self.do_split(root_node, 1)
         return root_node
