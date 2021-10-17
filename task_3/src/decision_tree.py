@@ -59,10 +59,10 @@ class DecisionTree:
             score: float = 0.0
 
             # Пробегаемся по классам и сравниваем классы содержмого с ними
-            for class_i in classes:
+            for class_i in set(classes):
                 p: float = 0.
-                for element in group:
-
+                for index, element in enumerate(group):
+                    # print(index)
                     # Если классы совпали, инкрементируем вероятность ...
                     if element[-1] == class_i:
                         p += 1

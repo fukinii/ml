@@ -115,7 +115,7 @@ class MyLogisticRegression:
 
         return w, b
 
-    def predict(self, x):
+    def predict_proba(self, x):
 
         p = np.empty(len(x), dtype=np.float32)
         i = 0
@@ -124,3 +124,21 @@ class MyLogisticRegression:
             i = i + 1
 
         return p
+
+    def predict(self, x):
+
+        p = np.empty(len(x), dtype=np.float32)
+        i = 0
+        for x_i in x:
+            p[i] = self.forward(x_i, self.w, self.b)
+            i = i + 1
+
+        i = 0
+        for p_i in p:
+            if p_i >= 0.5:
+                p[i] = 1
+            else:
+                p[i] = 0
+            i += 1
+        return p
+    
