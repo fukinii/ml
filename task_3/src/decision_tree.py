@@ -5,18 +5,40 @@ from typing import Dict, List, Any, Union
 
 
 class DecisionTree:
+    """
+    Класс решающего дерева
+    """
 
     def __init__(
             self,
             max_depth: int,
             min_node_size: int
-    ):
+    ) -> None:
+        """
+        Конструктор класса решающего дерева
+
+        :param max_depth: максимальаня глубина дерева
+        :param min_node_size: минимальный размер узла (количества объектов в нем)
+        """
         self.max_depth: int = max_depth
         self.min_node_size: int = min_node_size
         self.tree = None
 
     class TreeBinaryNode:
-        def __init__(self, left_node=None, right_node=None, data_dict=None):
+        """
+        Класс узла решающего дерева
+        """
+
+        def __init__(self, left_node=None, right_node=None, data_dict=None) -> None:
+            """
+            Конструктор класса узла
+
+            :param left_node: левый ребенок узла, которым может быть как следующим узлом, так и просто числом,
+            определяющим класс данных, если построение дерева окончено
+            :param right_node: правый ребенок узла, которым может быть как следующим узлом, так и просто числом,
+            определяющим класс данных
+            :param data_dict: словарь с данными узла, содержащий индекс фичи, пороговое значение и разбиваемые группы
+            """
             if data_dict is None:
                 data_dict = {}
 
@@ -24,28 +46,47 @@ class DecisionTree:
             self.right: Union[DecisionTree.TreeBinaryNode, int] = right_node
             self.data_dict: Dict = data_dict
 
-        def set_left_as_node(self, left_node):
+        def set_left_as_node(self, left_node) -> None:
+            """
+            Метод, записывающий в левого ребенка типа узел подаваемый на вход узел
+            """
             self.left: DecisionTree.TreeBinaryNode = left_node
 
         def set_left_as_num(self, left_num: int):
+            """
+            Метод, записывающий в левого ребенка типа int подаваемое на вход число
+            """
             self.left: int = left_num
 
         def set_right_as_node(self, right_node):
+            """
+            Метод, записывающий в правого ребенка типа узел подаваемый на вход узел
+            """
             self.right: DecisionTree.TreeBinaryNode = right_node
 
         def set_right_as_num(self, right_num: int):
+            """
+            Метод, записывающий в правого ребенка типа int подаваемое на вход число
+            """
             self.right: int = right_num
 
     class TreeNonBinaryNode:
-        def __init__(self, data):
-            self.children = []
-            self.data = data
+        def __init__(self):
+            pass
 
     @staticmethod
     def calc_gini(
             groups: List[List],
-            classes: List
+            classes: set
     ) -> float:
+        """
+        Метод для вычисления критерия информативности Джини
+
+        :param groups: входные группы с данными, среди которых могут быть представители всех классов.
+        Последняя ячейка хранит его номер
+        :param classes: существующие классы
+        :return: значение критерия информативности
+        """
         # Количество элементов в узле (во всех группах)
         num_of_elements: int = sum([len(group) for group in groups])
         gini: float = 0.0
@@ -60,7 +101,7 @@ class DecisionTree:
             score: float = 0.0
 
             # Пробегаемся по классам и сравниваем классы содержмого с ними
-            for class_i in set(classes):
+            for class_i in classes:
                 p: float = 0.
                 for index, element in enumerate(group):
                     # print(index)
@@ -80,16 +121,23 @@ class DecisionTree:
     @staticmethod
     def do_single_split(
             index: int,
-            value: float,
+            threshold: float,
             data: List
     ) -> List[List]:
+        """
+        Метод для построения одного разбиения на основе уже вычисленного порога некоторой фичи
+        :param index: индекс фичи
+        :param threshold: пороговое значение
+        :param data: список данных (иначе говоря - некоторый массив строк row исходной таблицы с данными)
+        :return: два массива-ребенка
+        """
         # Создаем данные для левого и правого ребенка
         left: List = []
         right: List = []
 
-        # Пробегаемся по всем элеменным таблицы и разбиваем на детей в зависимости от неравенства
+        # Пробегаемся по всем элеменным таблицы и разбиваем на детей в зависимости от значения в ячейке и порога
         for row in data:
-            if row[index] < value:
+            if row[index] < threshold:
                 left.append(row)
             else:
                 right.append(row)
@@ -100,49 +148,93 @@ class DecisionTree:
             self,
             data: List
     ) -> Dict[str, Any]:
-        classes: List = list(row[-1] for row in data)
-        split_index, split_value, best_gini, best_split = sys.maxsize, sys.maxsize, sys.maxsize, None
+        """
+        Произвести полное разбиение для входного массива строк row таблицы: пробежаться по всем фичам и соответствующим
+        ячейкам с вычислением Джини для каждого случая. Выбирается наилучший Джини
+        :param data: массив строк row с данными. Последняя ячейка хранит номер класса
+        :return: словарь с индексом фичи, порогом и разбиением
+        """
 
+        # Создаем множество со всеми имеющимися классами в data
+        classes: set = set(row[-1] for row in data)
+
+        # Инициализируем используемые данные
+        split_index, split_threshold, best_gini, best_split = sys.maxsize, sys.maxsize, sys.maxsize, None
         out: Dict = {}
 
+        # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего ДЖини
         for index in range(len(data[0]) - 1):
             for row in data:
-                groups = self.do_single_split(index, row[index], data)
-                gini = self.calc_gini(groups, classes)
-                if gini < best_gini:
-                    split_index, split_value, best_gini, best_split = index, row[index], gini, groups
 
+                # Строим конкретное разбиение для текущего значения index и data
+                groups = self.do_single_split(index, row[index], data)
+
+                # Вычисляем для него Джини
+                gini = self.calc_gini(groups, classes)
+
+                # Если Джини лучше предыдущих, сохраняем его и соответствующие ему индекс, порог и разбиение
+                if gini < best_gini:
+                    split_index, split_threshold, best_gini, best_split = index, row[index], gini, groups
+
+        # Заполнение данных для вывода
         out['index'] = split_index
-        out['value'] = split_value
+        out['threshold'] = split_threshold
         out['groups'] = best_split
 
         return out
 
     @staticmethod
-    def create_value_of_last_node(group) -> int:
-        outcomes = [row[-1] for row in group]
-        return max(set(outcomes), key=outcomes.count)
+    def create_value_of_last_node(group: List) -> int:
+        """
+        Метод, создающий финальное значение в листе на основе наиболее часто встречающегося класса в группе
+        :param group: список строк row исходной таблицы
+        :return: наиболее часто встречающийся класс
+        """
+        classes = [row[-1] for row in group]
+        return max(set(classes), key=classes.count)
 
-    def do_split(self, node: TreeBinaryNode, current_depth):
+    def do_split(self, node: TreeBinaryNode, current_depth: int) -> None:
+        """
+        Рекурсивный метод для построения дерева
+        :param node: входной узел
+        :param current_depth: текущая глубина узла node
+        :return: None
+        """
+
+        # Из текущего узла вытаскиваем уже найденные данные с группами
         left_list, right_list = node.data_dict['groups']
+
+        # Удаляем содержимое словаря по ключу групп, так как нам эти данные больше не нужны
         del (node.data_dict['groups'])
 
+        # Остановка построения дерева, если один из детей пустой
         if not left_list or not right_list:
             node.left = node.right = self.create_value_of_last_node(left_list + right_list)
             return
 
+        # Остановка построения дерева, если глубина достаточно большая
         if current_depth >= self.max_depth:
             node.set_left_as_num(self.create_value_of_last_node(left_list))
             node.set_right_as_num(self.create_value_of_last_node(right_list))
             return
 
+        # Вызов рекурсивной части, если не было выполнено одно из условий остановки
         node.left = self.do_recurse(data_list=left_list, depth=current_depth)
         node.right = self.do_recurse(data_list=right_list, depth=current_depth)
 
-    def do_recurse(self, data_list, depth):
+    def do_recurse(self, data_list: List, depth: int):
+        """
+        Рекурсивная часть метода do_split. Остановка вычислений, если текущий размер узла меньше минимального, либо
+        вызов do_split
+        :param data_list: список данных группы
+        :param depth: текущая глубина
+        :return: либо номер класса, если рекурсию необходимо завершить, либо узел TreeBinaryNode
+        """
 
+        # Инициализация узла
         node: Union[DecisionTree.TreeBinaryNode, int]
 
+        # Если текущий размер узла меньше минимального, записываем номер класса в узел. Иначе - вызов do_split
         if len(data_list) <= self.min_node_size:
             node: int = self.create_value_of_last_node(data_list)
         else:
@@ -152,35 +244,52 @@ class DecisionTree:
 
         return node
 
-    def build_tree(self, data):
+    def build_tree(self, data: List):
+        """
+        Метод для построения дерева на основе входной таблицы, содержащей выборку с X и Y. Необходимо предварительная
+        обработка с помещением номера класса объекта в конец таблицы
+
+        :param data: список входных данных. Последний столбец - номер класса
+        :return: узел корня с содержащимся в нем деревом
+        """
         root = self.do_full_one_node_split(data)
-        root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
+        root_node: DecisionTree.TreeBinaryNode = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
         self.do_split(root_node, 1)
         return root_node
 
     def build_tree_through_df(self,
-                              x_train: pd.core.frame.DataFrame,
-                              y_train: pd.core.frame.DataFrame):
-        print(type(y_train))
-        assert type(x_train) == pd.core.frame.DataFrame, "Некорректный тип данных x_train"
-        assert type(y_train) == pd.core.series.Series, "Некорректный тип данных y_train"
+                              x: pd.core.frame.DataFrame,
+                              y: pd.core.series.Series):
+        """
+        Построение дерева на основе разбитой выборки DataFrame
+        :param x: выборка x для построения дерева
+        :param y: выборка y для построения дерева
+        :return: корневой узел дерева
+        """
+        assert type(x) == pd.core.frame.DataFrame, "Некорректный тип данных x_train"
+        assert type(y) == pd.core.series.Series, "Некорректный тип данных y_train"
 
-        x_train_numpy = x_train.to_numpy()
-        y_train_numpy = y_train.to_numpy()
+        # Обернем все в numpy
+        x_numpy = x.to_numpy()
+        y_numpy = y.to_numpy()
+        y_numpy = y_numpy.reshape((1, len(y_numpy))).transpose().astype(int)
+        dataset = np.concatenate((x_numpy, y_numpy), axis=1)
 
-        y_test_numpy = y_train_numpy.reshape((1, len(y_train_numpy))).transpose().astype(int)
-        dataset = np.concatenate((x_train_numpy, y_test_numpy), axis=1)
-
-        data = list(dataset)
-
-        root = self.do_full_one_node_split(data)
+        # Вызовем простроение дерева
+        root = self.do_full_one_node_split(list(dataset))
         root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
         self.do_split(root_node, 1)
         return root_node
 
-    def predict(self, node, row):
+    def predict(self, node, row: List) -> object:
+        """
 
-        if row[node.data_dict['index']] < node.data_dict['value']:
+        :rtype: DecisionTree.TreeBinaryNode
+        :param node: узел
+        :param row: строка таблицы для предсказания класса
+        :return: предсказанное значение класса
+        """
+        if row[node.data_dict['index']] < node.data_dict['threshold']:
             if type(node.left) == DecisionTree.TreeBinaryNode:
                 return self.predict(node=node.left, row=row)
             else:
