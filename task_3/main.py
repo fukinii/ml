@@ -6,6 +6,7 @@ data = pd.read_csv('Shanghai_HMT_2010_cut.csv')
 data = data.dropna()
 
 data = data.drop(['cbwd'], axis=1)
+# data = data.drop(['No'], axis=1)
 # print(data.head(10))
 data.info()
 pres_median = data['PRES'].median()
@@ -25,9 +26,8 @@ y = data['PRES']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
 ''' Создаем объект решабщего дерева и обучаем его'''
-decision_tree_pd = DecisionTree(max_depth=5, min_node_size=1)
+decision_tree_pd = DecisionTree(max_depth=5, min_node_size=10)
 root_train_pd = decision_tree_pd.build_tree_through_df(X_train, y_train)
-
 
 ''' Создаем данные для проверки решений'''
 
@@ -51,3 +51,8 @@ for row in dataset_test:
 print(len(dataset_test), res_pd)
 
 print(res_pd / len(dataset_test))
+
+# print(data.columns)
+# print(data.columns[0])
+# print(type(data.columns))
+decision_tree_pd.draw(root_train_pd, data.columns, 0)

@@ -299,3 +299,17 @@ class DecisionTree:
                 return self.predict(node=node.right, row=row)
             else:
                 return node.right
+
+    def draw(self, node, columns: pd.core.indexes.base.Index, current_depth):
+        """
+        Метод для отрисовки дерева
+        :param node: текущий узел. В первый раз на вход подается корень
+        :param columns: список фич из dataFrame
+        :param current_depth: текущая глубина
+        """
+        if type(node) == DecisionTree.TreeBinaryNode:
+            print("—" * current_depth, columns[node.data_dict['index']], "<", node.data_dict['threshold'])
+            self.draw(node.left, columns, current_depth + 1)
+            self.draw(node.right, columns, current_depth + 1)
+        else:
+            print("—" * current_depth, node)
