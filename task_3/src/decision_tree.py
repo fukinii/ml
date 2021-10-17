@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import pandas as pd
 from typing import Dict, List, Any, Union
 
 
@@ -152,6 +153,26 @@ class DecisionTree:
         return node
 
     def build_tree(self, data):
+        root = self.do_full_one_node_split(data)
+        root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
+        self.do_split(root_node, 1)
+        return root_node
+
+    def build_tree_through_df(self,
+                              x_train: pd.core.frame.DataFrame,
+                              y_train: pd.core.frame.DataFrame):
+        print(type(y_train))
+        assert type(x_train) == pd.core.frame.DataFrame, "Некорректный тип данных x_train"
+        assert type(y_train) == pd.core.series.Series, "Некорректный тип данных y_train"
+
+        x_train_numpy = x_train.to_numpy()
+        y_train_numpy = y_train.to_numpy()
+
+        y_test_numpy = y_train_numpy.reshape((1, len(y_train_numpy))).transpose().astype(int)
+        dataset = np.concatenate((x_train_numpy, y_test_numpy), axis=1)
+
+        data = list(dataset)
+
         root = self.do_full_one_node_split(data)
         root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
         self.do_split(root_node, 1)

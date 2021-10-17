@@ -6,7 +6,7 @@ data = pd.read_csv('Shanghai_HMT_2010_cut.csv')
 data = data.dropna()
 
 data = data.drop(['cbwd'], axis=1)
-print(data.head(10))
+# print(data.head(10))
 data.info()
 pres_median = data['PRES'].median()
 
@@ -21,28 +21,15 @@ from src.decision_tree import DecisionTree
 X = data.drop(['PRES'], axis=1)
 y = data['PRES']
 
+''' Разделяем выборку на тестовую и обучающую '''
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-#
-# X_train_numpy = X_train.to_numpy()
-# y_train_numpy = y_train.to_numpy()
-#
-# y_train_numpy = y_train_numpy.reshape((1, len(y_train_numpy))).transpose().astype(int)
-#
-# dataset_train = np.concatenate((X_train_numpy, y_train_numpy), axis=1)
-#
-# decision_tree = DecisionTree(5, 1)
-#
-# root = decision_tree.build_tree(dataset_train)
-#
-# res: int = 0
-#
-# for row in dataset_train:
-#     prediction = decision_tree.predict(root, row)
-#     if row[-1] == prediction:
-#         res += 1
-#     print('Expected=%d, Got=%d' % (row[-1], prediction))
-#
-# print(len(dataset_train), res)
+
+''' Создаем объект решабщего дерева и обучаем его'''
+decision_tree_pd = DecisionTree(max_depth=5, min_node_size=1)
+root_train_pd = decision_tree_pd.build_tree_through_df(X_train, y_train)
+
+
+''' Создаем данные для проверки решений'''
 
 X_test_numpy = X_test.to_numpy()
 y_test_numpy = y_test.to_numpy()
@@ -50,18 +37,17 @@ y_test_numpy = y_test.to_numpy()
 y_test_numpy = y_test_numpy.reshape((1, len(y_test_numpy))).transpose().astype(int)
 dataset_test = np.concatenate((X_test_numpy, y_test_numpy), axis=1)
 
-decision_tree_test = DecisionTree(5, 1)
-# decision_tree = DecisionTree(5, 1)
-root_test = decision_tree_test.build_tree(dataset_test)
+'''========================================================================'''
 
-res_test = 0
+res_pd = 0
 
 for row in dataset_test:
-    prediction = decision_tree_test.predict(root_test, row)
-    if row[-1] == prediction:
-        res_test += 1
-    print('Expected=%d, Got=%d' % (row[-1], prediction))
 
-print(len(dataset_test), res_test)
+    prediction_pandas = decision_tree_pd.predict(root_train_pd, row)
 
-print(res_test / len(dataset_test))
+    if row[-1] == prediction_pandas:
+        res_pd += 1
+
+print(len(dataset_test), res_pd)
+
+print(res_pd / len(dataset_test))
