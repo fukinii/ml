@@ -48,9 +48,7 @@ for row in dataset_test:
     if row[-1] == prediction_pandas:
         res_pd += 1
 
-print(len(dataset_test), res_pd)
-
-print(res_pd / len(dataset_test))
+print(len(dataset_test), res_pd, res_pd / len(dataset_test))
 
 # print(data.columns)
 # print(data.columns[0])
