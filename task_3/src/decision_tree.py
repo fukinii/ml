@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Union
+from src.utils.utils import get_key
 
 
 class DecisionTree:
@@ -20,9 +21,13 @@ class DecisionTree:
         :param max_depth: максимальаня глубина дерева
         :param min_node_size: минимальный размер узла (количества объектов в нем)
         """
+        self.cat_feature_value_list: List = []
         self.max_depth: int = max_depth
         self.min_node_size: int = min_node_size
         self.tree = None
+        self.column_of_features: pd.core.indexes.base.Index = None
+        self.categorical_features_list: List = []
+        self.categorical_feature_index_list: List = []
 
     class TreeBinaryNode:
         """
@@ -313,3 +318,70 @@ class DecisionTree:
             self.draw(node.right, columns, current_depth + 1)
         else:
             print("—" * current_depth, node)
+
+    def set_categorical_data_from_dataframe(self, data: pd.core.frame.DataFrame):
+        self.categorical_features_list = data.columns[data.dtypes == object].tolist()
+
+        a = np.arange(len(data.columns))
+        categorical_feature_index = []
+        for feature in self.categorical_features_list:
+            categorical_feature_index.append(a[feature == data.columns][0])
+
+        self.categorical_feature_index_list = categorical_feature_index
+
+        assert len(self.cat_feature_value_list) == 0
+
+        for feature in self.categorical_features_list:
+            self.cat_feature_value_list.append(set(data[feature]))
+
+    def create_dict_for_cat_features(self, x_m):
+
+        list_of_dict_of_norms = []
+        sorted_norms = []
+        list_of_dict_cat_to_int = []
+        list_of_dict_int_to_cat = []
+
+        for id_feature, cat_feature_dict in enumerate(self.cat_feature_value_list):
+
+            dict_of_c_sizes = {key: 0 for key in cat_feature_dict}
+            dict_of_c_first_class_sizes = {key: 0 for key in cat_feature_dict}
+            dict_of_norms = {}
+            dict_cat_to_int = {}
+            dict_int_to_cat = {}
+
+            for row in x_m:
+                row_c = row[self.categorical_feature_index_list[id_feature]]
+                dict_of_c_sizes[row_c] += 1
+
+                if row[-1] == 1:
+                    dict_of_c_first_class_sizes[row_c] += 1
+
+            for key in dict_of_c_sizes:
+                dict_of_norms[key] = dict_of_c_first_class_sizes[key] / dict_of_c_sizes[key]
+
+            list_of_dict_of_norms.append(dict_of_norms)
+
+            a = []
+            for key in dict_of_norms:
+                a.append(dict_of_norms[key])
+            a.sort()
+            sorted_norms.append(a)
+            # print("dict_of_norms: ", dict_of_norms)
+            i = 0
+            for norm in a:
+                key = get_key(dict_of_norms, norm)
+                del dict_of_norms[key]
+                # print(key, i)
+                dict_cat_to_int[key] = i
+                dict_int_to_cat[i] = key
+                i += 1
+                # print(dict_cat_to_int)
+                # print(dict_int_to_cat)
+            list_of_dict_cat_to_int.append(dict_cat_to_int)
+            list_of_dict_int_to_cat.append(dict_int_to_cat)
+
+            # print(dict_of_c_sizes)
+            # print(dict_of_c_first_class_sizes)
+            # print()
+
+        return list_of_dict_cat_to_int, list_of_dict_int_to_cat
