@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Union
 from src.utils.utils import get_key
-
+import copy
 
 class DecisionTree:
     """
@@ -28,6 +28,7 @@ class DecisionTree:
         self.column_of_features: pd.core.indexes.base.Index = None
         self.categorical_features_list: List = []
         self.categorical_feature_index_list: List = []
+        self.dict_index_to_num_cat_feature = {}
 
     class TreeBinaryNode:
         """
@@ -142,6 +143,8 @@ class DecisionTree:
 
         # Пробегаемся по всем элеменным таблицы и разбиваем на детей в зависимости от значения в ячейке и порога
         for row in data:
+            if type(row[index]) == str:
+                a = 5
             if row[index] < threshold:
                 left.append(row)
             else:
@@ -167,15 +170,29 @@ class DecisionTree:
         split_index, split_threshold, best_gini, best_split = sys.maxsize, sys.maxsize, sys.maxsize, None
         out: Dict = {}
 
+        list_of_dict_cat_to_int, list_of_dict_int_to_cat = self.create_dict_for_cat_features(data)
+
         # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего ДЖини
-        for index in range(len(data[0]) - 1):
-            for row in data:
+        for row in data:
+            for index in range(len(data[0]) - 1):
+                if index in self.categorical_feature_index_list:
+                    # Строим конкретное разбиение для текущего значения index и data
+                    str = row[index]
 
-                # Строим конкретное разбиение для текущего значения index и data
-                groups = self.do_single_split(index, row[index], data)
+                    cat_num = self.dict_index_to_num_cat_feature[index]
+                    cat_dict = list_of_dict_cat_to_int[cat_num]
+                    new_data = self.replace_categorical_str_to_int(data, cat_dict, index)
+                    c = cat_dict[str]
+                    groups = self.do_single_split(index, c, new_data)
 
-                # Вычисляем для него Джини
-                gini = self.calc_gini(groups, classes)
+                    # Вычисляем для него Джини
+                    gini = self.calc_gini(groups, classes)
+                else:
+                    # Строим конкретное разбиение для текущего значения index и data
+                    groups = self.do_single_split(index, row[index], data)
+
+                    # Вычисляем для него Джини
+                    gini = self.calc_gini(groups, classes)
 
                 # Если Джини лучше предыдущих, сохраняем его и соответствующие ему индекс, порог и разбиение
                 if gini < best_gini:
@@ -324,8 +341,9 @@ class DecisionTree:
 
         a = np.arange(len(data.columns))
         categorical_feature_index = []
-        for feature in self.categorical_features_list:
+        for i, feature in enumerate(self.categorical_features_list):
             categorical_feature_index.append(a[feature == data.columns][0])
+            self.dict_index_to_num_cat_feature[categorical_feature_index[-1]] = i
 
         self.categorical_feature_index_list = categorical_feature_index
 
@@ -356,7 +374,17 @@ class DecisionTree:
                 if row[-1] == 1:
                     dict_of_c_first_class_sizes[row_c] += 1
 
-            for key in dict_of_c_sizes:
+            # for i in list(dict_of_c_sizes):
+            #     if dict_of_c_sizes[key] == 0:
+            #         del dict_of_c_sizes[key]
+            #         del dict_of_c_first_class_sizes[key]
+
+            for key in dict_of_c_sizes.copy():
+                if dict_of_c_sizes[key] == 0:
+                    del dict_of_c_sizes[key]
+                    del dict_of_c_first_class_sizes[key]
+                    continue
+
                 dict_of_norms[key] = dict_of_c_first_class_sizes[key] / dict_of_c_sizes[key]
 
             list_of_dict_of_norms.append(dict_of_norms)
@@ -385,3 +413,12 @@ class DecisionTree:
             # print()
 
         return list_of_dict_cat_to_int, list_of_dict_int_to_cat
+
+    def replace_categorical_str_to_int(self, data, dict_cat_to_int, index):
+        new_data = copy.deepcopy(data)
+        for row_id, row in enumerate(new_data):
+            a = row
+            cat = row[index]
+            new_data[row_id][index] = dict_cat_to_int[cat]
+
+        return new_data
