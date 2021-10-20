@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 import pickle
 from sklearn.model_selection import train_test_split
-from src.decision_tree import DecisionTree
+from sklearn.tree import DecisionTreeClassifier
+# from sklearn import tree
 
-data_pd = pd.read_csv('data/data_cut.csv')
+data_pd = pd.read_csv('data/data_cut_300.csv')
 data_pd = data_pd.dropna()
 data_pd.info()
 
@@ -36,7 +37,7 @@ X = data_pd.drop(['Money'], axis=1)
 y = data_pd['Money']
 
 ''' Разделяем выборку на тестовую и обучающую '''
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
 
 X_numpy = X_test.to_numpy()
 y_numpy = y_test.to_numpy()
@@ -45,29 +46,37 @@ y_test_numpy = y_numpy.reshape((1, len(y_numpy))).transpose().astype(int)
 dataset_test = np.concatenate((X_numpy, y_test_numpy), axis=1)
 
 # my_ds = DecisionTree(max_depth=5, min_node_size=20)
-# root_train_pd = my_ds.build_tree_through_df(X_train, y_train)
+# root_train_pd = my_ds.fit(X_train, y_train)
 #
-# with open('data/tree_pickle_3131_all_5_5.pickle', 'wb') as f:
-#     pickle.dump(root_train_pd, f)
-#
-# with open('data/my_ds_5_5.pickle', 'wb') as f:
+# with open('data/my_ds_300_all_5_5_.pickle', 'wb') as f:
 #     pickle.dump(my_ds, f)
 
-with open('data/tree_pickle_3131_all_5_5_1640.pickle', 'rb') as f:
-    root_train_pd = pickle.load(f)
-
-with open('data/my_ds_5_5_1640.pickle', 'rb') as f:
+# with open('data/tree_pickle_300_all_5_5_1727.pickle', 'rb') as f:
+#     root_train_pd = pickle.load(f)
+#
+with open('data/my_ds_300_all_5_5_.pickle', 'rb') as f:
     my_ds = pickle.load(f)
 
 res_pd = 0
-for row in dataset_test:
 
-    prediction_pandas = my_ds.predict(root_train_pd, row)
+_, accuracy = my_ds.predict(X_test, y_test)
 
-    if row[-1] == prediction_pandas:
-        res_pd += 1
-    print("my_pred: ", prediction_pandas, "; true_val: ", row[-1])
+# for row in dataset_test:
+#
+#     prediction_pandas = my_ds.single_predict(root_train_pd, row)
+#
+#     if row[-1] == prediction_pandas:
+#         res_pd += 1
+#     print("my_pred: ", prediction_pandas, "; true_val: ", row[-1])
 
-print(len(dataset_test), res_pd, res_pd / len(dataset_test))
+print("accuracy = ", accuracy)
 
-my_ds.draw(root_train_pd, X.columns, 0)
+my_ds.draw(my_ds.root, X.columns, 0)
+
+tree = DecisionTreeClassifier(max_depth=5, criterion='gini', random_state=42)
+
+exp1_data_train = X_train
+exp1_data_labels = y_train
+tree.fit(exp1_data_train, exp1_data_labels)
+
+

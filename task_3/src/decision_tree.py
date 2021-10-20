@@ -30,6 +30,7 @@ class DecisionTree:
         self.categorical_features_list: List = []
         self.categorical_feature_index_list: List = []
         self.dict_index_to_num_cat_feature = {}
+        self.root: DecisionTree.TreeBinaryNode = DecisionTree.TreeBinaryNode()
 
     class TreeBinaryNode:
         """
@@ -230,7 +231,6 @@ class DecisionTree:
         :param current_depth: текущая глубина узла node
         :return: None
         """
-        print(current_depth)
         # Из текущего узла вытаскиваем уже найденные данные с группами
         left_list, right_list = node.data_dict['groups']
 
@@ -290,7 +290,7 @@ class DecisionTree:
         self.do_split(root_node, 1)
         return root_node
 
-    def build_tree_through_df(self,
+    def fit(self,
                               x: pd.core.frame.DataFrame,
                               y: pd.core.series.Series):
         """
@@ -315,9 +315,10 @@ class DecisionTree:
         root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root_1,
                                         list_of_sorted_cat_features=root_2)
         self.do_split(root_node, 1)
+        self.root = root_node
         return root_node
 
-    def predict(self, node, row: List) -> object:
+    def single_predict(self, node, row: List) -> object:
         """
 
         :rtype: DecisionTree.TreeBinaryNode
@@ -343,14 +344,33 @@ class DecisionTree:
 
         if current_value < threshold:
             if type(node.left) == DecisionTree.TreeBinaryNode:
-                return self.predict(node=node.left, row=row)
+                return self.single_predict(node=node.left, row=row)
             else:
                 return node.left
         else:
             if type(node.right) == DecisionTree.TreeBinaryNode:
-                return self.predict(node=node.right, row=row)
+                return self.single_predict(node=node.right, row=row)
             else:
                 return node.right
+
+    def predict(self, x_test, y_test):
+
+        x_numpy = x_test.to_numpy()
+        y_numpy = y_test.to_numpy()
+
+        y_test_numpy = y_numpy.reshape((1, len(y_numpy))).transpose().astype(int)
+        dataset = np.concatenate((x_numpy, y_test_numpy), axis=1)
+
+        predictions = np.zeros(len(dataset), dtype=np.int64)
+        true_values = np.zeros(len(dataset), dtype=np.int64)
+
+        for row_index, row in enumerate(dataset):
+
+            predictions[row_index] = self.single_predict(self.root, row)
+            true_values[row_index] = row[-1]
+
+        accuracy = sum(predictions == true_values) / len(predictions)
+        return predictions, accuracy
 
     def draw(self, node, columns: pd.core.indexes.base.Index, current_depth):
         """
