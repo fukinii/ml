@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from src.decision_tree import DecisionTree
-from src.utils.utils import get_key
 
 data_pd = pd.read_csv('Shanghai_HMT_2010_cut.csv')
 data_pd = data_pd.dropna()

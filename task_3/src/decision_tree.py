@@ -144,8 +144,6 @@ class DecisionTree:
 
         # Пробегаемся по всем элеменным таблицы и разбиваем на детей в зависимости от значения в ячейке и порога
         for row in data:
-            if type(row[index]) == str:
-                a = 5
             if row[index] < threshold:
                 left.append(row)
             else:
@@ -178,12 +176,12 @@ class DecisionTree:
             for index in range(len(data[0]) - 1):
                 if index in self.categorical_feature_index_list:
                     # Строим конкретное разбиение для текущего значения index и data
-                    str = row[index]
+                    feature_as_str = row[index]
 
                     cat_num = self.dict_index_to_num_cat_feature[index]
                     cat_dict = list_of_dict_cat_to_int[cat_num]
                     new_data = self.replace_categorical_str_to_int(data, cat_dict, index)
-                    c = cat_dict[str]
+                    c = cat_dict[feature_as_str]
                     groups = self.do_single_split(index, c, new_data)
 
                     # Вычисляем для него Джини
@@ -271,10 +269,8 @@ class DecisionTree:
         if len(data_list) <= self.min_node_size:
             node: int = self.create_value_of_last_node(data_list)
         else:
-            data_list_debug = copy.deepcopy(self.do_full_one_node_split(data_list))
             node: DecisionTree.TreeBinaryNode = self.TreeBinaryNode(left_node=None, right_node=None,
                                                                     data_dict=self.do_full_one_node_split(data_list))
-            debug = copy.deepcopy(node)
             self.do_split(node=node, current_depth=depth + 1)
 
         return node
@@ -384,8 +380,6 @@ class DecisionTree:
 
             for row in x_m:
                 row_c = row[self.categorical_feature_index_list[id_feature]]
-                if row_c == 2:
-                    debug = 1
                 dict_of_c_sizes[row_c] += 1
 
                 if row[-1] == 1:
@@ -425,7 +419,6 @@ class DecisionTree:
     def replace_categorical_str_to_int(data, dict_cat_to_int, index):
         new_data = copy.deepcopy(data)
         for row_id, row in enumerate(new_data):
-            a = row
             cat = row[index]
             new_data[row_id][index] = dict_cat_to_int[cat]
 
@@ -435,7 +428,6 @@ class DecisionTree:
     def replace_int_to_categorical_str(data, dict_int_to_cat, index):
         new_data = copy.deepcopy(data)
         for row_id, row in enumerate(new_data):
-            a = row
             i = row[index]
             new_data[row_id][index] = dict_int_to_cat[i]
 
