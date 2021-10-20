@@ -174,11 +174,8 @@ class DecisionTree:
         list_of_dict_cat_to_int, list_of_dict_int_to_cat = self.create_dict_for_cat_features(data)
 
         # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего ДЖини
-        i = -1
         for row in data:
-            i += 1
             for index in range(len(data[0]) - 1):
-                # print(i, index)
                 if index in self.categorical_feature_index_list:
                     # Строим конкретное разбиение для текущего значения index и data
                     feature_as_str = row[index]
@@ -201,9 +198,6 @@ class DecisionTree:
                 # Если Джини лучше предыдущих, сохраняем его и соответствующие ему индекс, порог и разбиение
                 if gini < best_gini:
                     split_index, split_threshold, best_gini, best_split = index, row[index], gini, groups
-        #
-        # if type(best_split[0][0][8]) == int:
-        #     debug = 1
 
         if split_index in self.categorical_feature_index_list:
             # for feature_index in self.categorical_feature_index_list:
@@ -333,17 +327,12 @@ class DecisionTree:
         """
 
         index = node.data_dict['index']
-        # print("node: ", node)
-        # print("row: ", row)
-        # print(type(node.left), type(node.right))
-        # print()
 
         if index in self.categorical_feature_index_list:
             cat_num = self.dict_index_to_num_cat_feature[index]
             cat_dict_str_to_int = node.sorted_cat_features[0][cat_num]
             threshold = cat_dict_str_to_int[node.data_dict['threshold']]
-            # if row[index] == ' Columbia':
-            # print("aaaaaaaaaaaa")
+
             if row[index] in cat_dict_str_to_int:
                 current_value = cat_dict_str_to_int[row[index]]
             else:
