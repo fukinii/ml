@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Tuple
 from src.utils.utils import get_key
 import copy
 
@@ -36,7 +36,7 @@ class DecisionTree:
         Класс узла решающего дерева
         """
 
-        def __init__(self, left_node=None, right_node=None, data_dict=None) -> None:
+        def __init__(self, left_node=None, right_node=None, data_dict=None, list_of_sorted_cat_features=None) -> None:
             """
             Конструктор класса узла
 
@@ -48,10 +48,12 @@ class DecisionTree:
             """
             if data_dict is None:
                 data_dict = {}
-
+            if list_of_sorted_cat_features is None:
+                list_of_sorted_cat_features = []
             self.left: Union[DecisionTree.TreeBinaryNode, int] = left_node
             self.right: Union[DecisionTree.TreeBinaryNode, int] = right_node
             self.data_dict: Dict = data_dict
+            self.sorted_cat_features: List[List[Dict]] = list_of_sorted_cat_features
 
         def set_left_as_node(self, left_node) -> None:
             """
@@ -154,7 +156,7 @@ class DecisionTree:
     def do_full_one_node_split(
             self,
             data: List
-    ) -> Dict[str, Any]:
+    ) -> Tuple[Dict[str, Any], List[List[Dict]]]:
         """
         Произвести полное разбиение для входного массива строк row таблицы: пробежаться по всем фичам и соответствующим
         ячейкам с вычислением Джини для каждого случая. Выбирается наилучший Джини
@@ -212,7 +214,7 @@ class DecisionTree:
         out['threshold'] = split_threshold
         out['groups'] = best_split
 
-        return out
+        return out, [list_of_dict_cat_to_int, list_of_dict_int_to_cat]
 
     @staticmethod
     def create_value_of_last_node(group: List) -> int:
@@ -269,8 +271,11 @@ class DecisionTree:
         if len(data_list) <= self.min_node_size:
             node: int = self.create_value_of_last_node(data_list)
         else:
+            data_dict, list_of_dicts_to_convert = self.do_full_one_node_split(data_list)
             node: DecisionTree.TreeBinaryNode = self.TreeBinaryNode(left_node=None, right_node=None,
-                                                                    data_dict=self.do_full_one_node_split(data_list))
+                                                                    data_dict=data_dict,
+                                                                    list_of_sorted_cat_features=list_of_dicts_to_convert
+                                                                    )
             self.do_split(node=node, current_depth=depth + 1)
 
         return node
@@ -309,8 +314,9 @@ class DecisionTree:
         dataset = np.concatenate((x_numpy, y_numpy), axis=1)
 
         # Вызовем простроение дерева
-        root = self.do_full_one_node_split(list(dataset))
-        root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root)
+        root_1, root_2 = self.do_full_one_node_split(list(dataset))
+        root_node = self.TreeBinaryNode(left_node=None, right_node=None, data_dict=root_1,
+                                        list_of_sorted_cat_features=root_2)
         self.do_split(root_node, 1)
         return root_node
 
@@ -340,10 +346,24 @@ class DecisionTree:
         :param columns: список фич из dataFrame
         :param current_depth: текущая глубина
         """
+
         if type(node) == DecisionTree.TreeBinaryNode:
-            print("—" * current_depth, columns[node.data_dict['index']], "<", node.data_dict['threshold'])
-            self.draw(node.left, columns, current_depth + 1)
-            self.draw(node.right, columns, current_depth + 1)
+            if node.data_dict['index'] in self.categorical_feature_index_list:
+                index = node.data_dict['index']
+                cat_num = self.dict_index_to_num_cat_feature[index]
+                cat_dict_int_to_str = node.sorted_cat_features[1][cat_num]
+                cat_dict_str_to_int = node.sorted_cat_features[0][cat_num]
+                current_str = cat_dict_str_to_int[node.data_dict['threshold']]
+                variants_int = np.arange(current_str)
+                variants_str = []
+                for var in variants_int:
+                    variants_str.append(cat_dict_int_to_str[var])
+
+                print("—" * current_depth, columns[node.data_dict['index']], " = ", ' || '.join(variants_str))
+            else:
+                print("—" * current_depth, columns[node.data_dict['index']], "<", node.data_dict['threshold'])
+                self.draw(node.left, columns, current_depth + 1)
+                self.draw(node.right, columns, current_depth + 1)
         else:
             print("—" * current_depth, node)
 
