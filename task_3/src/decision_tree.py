@@ -19,7 +19,7 @@ class DecisionTree:
         """
         Конструктор класса решающего дерева
 
-        :param max_depth: максимальаня глубина дерева
+        :param max_depth: максимальная глубина дерева
         :param min_node_size: минимальный размер узла (количества объектов в нем)
         """
         self.cat_feature_value_list: List = []
@@ -291,8 +291,8 @@ class DecisionTree:
         return root_node
 
     def fit(self,
-                              x: pd.core.frame.DataFrame,
-                              y: pd.core.series.Series):
+            x: pd.core.frame.DataFrame,
+            y: pd.core.series.Series):
         """
         Построение дерева на основе разбитой выборки DataFrame
         :param x: выборка x для построения дерева
@@ -353,24 +353,18 @@ class DecisionTree:
             else:
                 return node.right
 
-    def predict(self, x_test, y_test):
+    def predict(self, x_test):
 
         x_numpy = x_test.to_numpy()
-        y_numpy = y_test.to_numpy()
 
-        y_test_numpy = y_numpy.reshape((1, len(y_numpy))).transpose().astype(int)
-        dataset = np.concatenate((x_numpy, y_test_numpy), axis=1)
+        dataset = x_numpy
 
         predictions = np.zeros(len(dataset), dtype=np.int64)
-        true_values = np.zeros(len(dataset), dtype=np.int64)
 
         for row_index, row in enumerate(dataset):
-
             predictions[row_index] = self.single_predict(self.root, row)
-            true_values[row_index] = row[-1]
 
-        accuracy = sum(predictions == true_values) / len(predictions)
-        return predictions, accuracy
+        return predictions
 
     def draw(self, node, columns: pd.core.indexes.base.Index, current_depth):
         """

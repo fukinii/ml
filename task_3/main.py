@@ -27,7 +27,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 
 ''' Создаем объект решабщего дерева и обучаем его'''
 decision_tree_pd = DecisionTree(max_depth=5, min_node_size=10)
-root_train_pd = decision_tree_pd.build_tree_through_df(X_train, y_train)
+root_train_pd = decision_tree_pd.fit(X_train, y_train)
 
 ''' Создаем данные для проверки решений'''
 
