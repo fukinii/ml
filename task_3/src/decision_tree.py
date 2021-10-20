@@ -304,6 +304,8 @@ class DecisionTree:
         assert type(x) == pd.core.frame.DataFrame, "Некорректный тип данных x_train"
         assert type(y) == pd.core.series.Series, "Некорректный тип данных y_train"
 
+        self.set_categorical_data_from_dataframe(x)
+
         # Обернем все в numpy
         x_numpy = x.to_numpy()
         y_numpy = y.to_numpy()
@@ -389,11 +391,6 @@ class DecisionTree:
                 if row[-1] == 1:
                     dict_of_c_first_class_sizes[row_c] += 1
 
-            # for i in list(dict_of_c_sizes):
-            #     if dict_of_c_sizes[key] == 0:
-            #         del dict_of_c_sizes[key]
-            #         del dict_of_c_first_class_sizes[key]
-
             for key in dict_of_c_sizes.copy():
                 if dict_of_c_sizes[key] == 0:
                     del dict_of_c_sizes[key]
@@ -409,23 +406,18 @@ class DecisionTree:
                 a.append(dict_of_norms[key])
             a.sort()
             sorted_norms.append(a)
-            # print("dict_of_norms: ", dict_of_norms)
+
             i = 0
             for norm in a:
                 key = get_key(dict_of_norms, norm)
                 del dict_of_norms[key]
-                # print(key, i)
+
                 dict_cat_to_int[key] = i
                 dict_int_to_cat[i] = key
                 i += 1
-                # print(dict_cat_to_int)
-                # print(dict_int_to_cat)
+
             list_of_dict_cat_to_int.append(dict_cat_to_int)
             list_of_dict_int_to_cat.append(dict_int_to_cat)
-
-            # print(dict_of_c_sizes)
-            # print(dict_of_c_first_class_sizes)
-            # print()
 
         return list_of_dict_cat_to_int, list_of_dict_int_to_cat
 

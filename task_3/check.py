@@ -25,7 +25,7 @@ X_numpy = X_test.to_numpy()
 y_numpy = y_test.to_numpy()
 
 my_ds = DecisionTree(max_depth=7, min_node_size=5)
-my_ds.set_categorical_data_from_dataframe(X)
+# my_ds.set_categorical_data_from_dataframe(X)
 
 y_test_numpy = y_numpy.reshape((1, len(y_numpy))).transpose().astype(int)
 dataset_test = np.concatenate((X_numpy, y_test_numpy), axis=1)
