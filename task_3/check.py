@@ -20,8 +20,8 @@ X.to_csv('X.csv')
 ''' Разделяем выборку на тестовую и обучающую '''
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
-X_numpy = X_test.to_numpy()
-y_numpy = y_test.to_numpy()
+X_numpy = X_train.to_numpy()
+y_numpy = y_train.to_numpy()
 
 my_ds = DecisionTree(max_depth=7, min_node_size=5)
 # my_ds.set_categorical_data_from_dataframe(X)

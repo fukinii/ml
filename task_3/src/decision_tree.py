@@ -174,8 +174,11 @@ class DecisionTree:
         list_of_dict_cat_to_int, list_of_dict_int_to_cat = self.create_dict_for_cat_features(data)
 
         # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего ДЖини
+        i = -1
         for row in data:
+            i += 1
             for index in range(len(data[0]) - 1):
+                # print(i, index)
                 if index in self.categorical_feature_index_list:
                     # Строим конкретное разбиение для текущего значения index и data
                     feature_as_str = row[index]
@@ -233,7 +236,7 @@ class DecisionTree:
         :param current_depth: текущая глубина узла node
         :return: None
         """
-
+        print(current_depth)
         # Из текущего узла вытаскиваем уже найденные данные с группами
         left_list, right_list = node.data_dict['groups']
 
@@ -328,7 +331,28 @@ class DecisionTree:
         :param row: строка таблицы для предсказания класса
         :return: предсказанное значение класса
         """
-        if row[node.data_dict['index']] < node.data_dict['threshold']:
+
+        index = node.data_dict['index']
+        # print("node: ", node)
+        # print("row: ", row)
+        # print(type(node.left), type(node.right))
+        # print()
+
+        if index in self.categorical_feature_index_list:
+            cat_num = self.dict_index_to_num_cat_feature[index]
+            cat_dict_str_to_int = node.sorted_cat_features[0][cat_num]
+            threshold = cat_dict_str_to_int[node.data_dict['threshold']]
+            # if row[index] == ' Columbia':
+            # print("aaaaaaaaaaaa")
+            if row[index] in cat_dict_str_to_int:
+                current_value = cat_dict_str_to_int[row[index]]
+            else:
+                current_value = 0
+        else:
+            current_value = row[index]
+            threshold = node.data_dict['threshold']
+
+        if current_value < threshold:
             if type(node.left) == DecisionTree.TreeBinaryNode:
                 return self.predict(node=node.left, row=row)
             else:
@@ -353,13 +377,15 @@ class DecisionTree:
                 cat_num = self.dict_index_to_num_cat_feature[index]
                 cat_dict_int_to_str = node.sorted_cat_features[1][cat_num]
                 cat_dict_str_to_int = node.sorted_cat_features[0][cat_num]
-                current_str = cat_dict_str_to_int[node.data_dict['threshold']]
-                variants_int = np.arange(current_str)
+                current_int = cat_dict_str_to_int[node.data_dict['threshold']]
+                variants_int = np.arange(current_int)
                 variants_str = []
                 for var in variants_int:
                     variants_str.append(cat_dict_int_to_str[var])
 
                 print("—" * current_depth, columns[node.data_dict['index']], " = ", ' || '.join(variants_str))
+                self.draw(node.left, columns, current_depth + 1)
+                self.draw(node.right, columns, current_depth + 1)
             else:
                 print("—" * current_depth, columns[node.data_dict['index']], "<", node.data_dict['threshold'])
                 self.draw(node.left, columns, current_depth + 1)
