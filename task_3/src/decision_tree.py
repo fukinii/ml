@@ -5,6 +5,7 @@ from typing import Dict, List, Any, Union
 from src.utils.utils import get_key
 import copy
 
+
 class DecisionTree:
     """
     Класс решающего дерева
@@ -197,6 +198,16 @@ class DecisionTree:
                 # Если Джини лучше предыдущих, сохраняем его и соответствующие ему индекс, порог и разбиение
                 if gini < best_gini:
                     split_index, split_threshold, best_gini, best_split = index, row[index], gini, groups
+        #
+        # if type(best_split[0][0][8]) == int:
+        #     debug = 1
+
+        if split_index in self.categorical_feature_index_list:
+            # for feature_index in self.categorical_feature_index_list:
+            cat_num = self.dict_index_to_num_cat_feature[split_index]
+            cat_dict = list_of_dict_int_to_cat[cat_num]
+            best_split[0] = self.replace_int_to_categorical_str(best_split[0], cat_dict, split_index)
+            best_split[1] = self.replace_int_to_categorical_str(best_split[1], cat_dict, split_index)
 
         # Заполнение данных для вывода
         out['index'] = split_index
@@ -260,8 +271,10 @@ class DecisionTree:
         if len(data_list) <= self.min_node_size:
             node: int = self.create_value_of_last_node(data_list)
         else:
+            data_list_debug = copy.deepcopy(self.do_full_one_node_split(data_list))
             node: DecisionTree.TreeBinaryNode = self.TreeBinaryNode(left_node=None, right_node=None,
                                                                     data_dict=self.do_full_one_node_split(data_list))
+            debug = copy.deepcopy(node)
             self.do_split(node=node, current_depth=depth + 1)
 
         return node
@@ -369,6 +382,8 @@ class DecisionTree:
 
             for row in x_m:
                 row_c = row[self.categorical_feature_index_list[id_feature]]
+                if row_c == 2:
+                    debug = 1
                 dict_of_c_sizes[row_c] += 1
 
                 if row[-1] == 1:
@@ -414,11 +429,22 @@ class DecisionTree:
 
         return list_of_dict_cat_to_int, list_of_dict_int_to_cat
 
-    def replace_categorical_str_to_int(self, data, dict_cat_to_int, index):
+    @staticmethod
+    def replace_categorical_str_to_int(data, dict_cat_to_int, index):
         new_data = copy.deepcopy(data)
         for row_id, row in enumerate(new_data):
             a = row
             cat = row[index]
             new_data[row_id][index] = dict_cat_to_int[cat]
+
+        return new_data
+
+    @staticmethod
+    def replace_int_to_categorical_str(data, dict_int_to_cat, index):
+        new_data = copy.deepcopy(data)
+        for row_id, row in enumerate(new_data):
+            a = row
+            i = row[index]
+            new_data[row_id][index] = dict_int_to_cat[i]
 
         return new_data
