@@ -1,6 +1,6 @@
 """
 Тестировочный и отладочный файл для домашней работы.
-Главная часть изложена в файле HW.ipynb
+Главная часть изложена в файле HW.ipynb, реализация решающего дерева - в файле src/decision_tree.py
 """
 
 import pandas as pd
@@ -19,22 +19,10 @@ for index, row in data_pd.iterrows():
             a.add(index)
 
 data_pd.drop(list(a), axis=0, inplace=True)
-# data_pd.to_csv('my_data_pd_old.csv')
-# list_to_drop = ['Education', 'Occupation', 'Relationship', 'Race', 'Sex', 'Native-country', 'Age']
-# data_pd.drop(list_to_drop, axis=1, inplace=True)
+
 data_pd.info()
-# #
-# df = my_data_pd[~my_data_pd[list(cols)].eq('?').all(axis = 1)]
-# df.to_csv('df.csv')
-# df = my_data_pd.drop(my_data_pd[my_data_pd.score < 50].index)
-# my_data_pd
-# my_data_pd.info()
 
 data_pd['Money'] = (data_pd['Money'] == " <=50K").astype('int64')
-
-# data_pd.to_csv('my_data_pd_old.csv')
-
-# y.to_csv('y.csv')
 
 X = data_pd.drop(['Money'], axis=1)
 y = data_pd['Money']

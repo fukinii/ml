@@ -174,7 +174,7 @@ class DecisionTree:
 
         list_of_dict_cat_to_int, list_of_dict_int_to_cat = self.create_dict_for_cat_features(data)
 
-        # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего ДЖини
+        # Пробегаемся по всем фичам и ячейкам для вычисления наилучшего Джини
         for row in data:
             for index in range(len(data[0]) - 1):
                 if index in self.categorical_feature_index_list:
@@ -320,7 +320,7 @@ class DecisionTree:
 
     def single_predict(self, node, row: List) -> object:
         """
-
+        Метод для предсказания класса некоторого элемента
         :rtype: DecisionTree.TreeBinaryNode
         :param node: узел
         :param row: строка таблицы для предсказания класса
@@ -329,6 +329,7 @@ class DecisionTree:
 
         index = node.data_dict['index']
 
+        # Если признак элемента является категориальным, то находим соответствующее ему число
         if index in self.categorical_feature_index_list:
             cat_num = self.dict_index_to_num_cat_feature[index]
             cat_dict_str_to_int = node.sorted_cat_features[0][cat_num]
@@ -342,6 +343,7 @@ class DecisionTree:
             current_value = row[index]
             threshold = node.data_dict['threshold']
 
+        # Определяем, куда следует отнести элемент в соответствии с отношением к порогу - влево или направо
         if current_value < threshold:
             if type(node.left) == DecisionTree.TreeBinaryNode:
                 return self.single_predict(node=node.left, row=row)
@@ -353,14 +355,19 @@ class DecisionTree:
             else:
                 return node.right
 
-    def predict(self, x_test):
+    def predict(self, x_test: pd.core.frame.DataFrame) -> np.ndarray:
+        """
+        Метод для предсказания классов элементов входной таблицы DataFrame
+        :param x_test: тестовая таблица с элементами
+        :return: массив с предсказанными классами
+        """
 
+        # Перегоняем все в numpy, готовим массивы
         x_numpy = x_test.to_numpy()
-
         dataset = x_numpy
-
         predictions = np.zeros(len(dataset), dtype=np.int64)
 
+        # Пробегаемся по всем строками входной таблицы и сравниваем классы
         for row_index, row in enumerate(dataset):
             predictions[row_index] = self.single_predict(self.root, row)
 
@@ -396,29 +403,49 @@ class DecisionTree:
         else:
             print("—" * current_depth, node)
 
-    def set_categorical_data_from_dataframe(self, data: pd.core.frame.DataFrame):
+    def set_categorical_data_from_dataframe(self, data: pd.core.frame.DataFrame) -> None:
+        """
+        Препроцессорный метод для инициализации словарей, используемых для работы с категориальными фичами
+        :param data: входная таблица с данными
+        """
+
+        # В методе заполняются листы и словари (поля класса):
+        # лист со всеми категориальными фичами текущей таблицы данных...
         self.categorical_features_list = data.columns[data.dtypes == object].tolist()
 
         a = np.arange(len(data.columns))
         categorical_feature_index = []
+
+        # ... словарь для перехода от номера категориальной фичи среди колонок таблицы данных
+        # к номеру в листе с категориальными фичами
         for i, feature in enumerate(self.categorical_features_list):
             categorical_feature_index.append(a[feature == data.columns][0])
             self.dict_index_to_num_cat_feature[categorical_feature_index[-1]] = i
 
+        # ... словарь с номерами категориальных фич среди всех фич таблицы
         self.categorical_feature_index_list = categorical_feature_index
 
         assert len(self.cat_feature_value_list) == 0
 
+        # ... лист со всеми принимаемыми значениями всех фич
         for feature in self.categorical_features_list:
             self.cat_feature_value_list.append(set(data[feature]))
 
-    def create_dict_for_cat_features(self, x_m):
+    def create_dict_for_cat_features(self, x_m: List) -> Tuple[List[Dict[Any, int]], List[Dict[int, Any]]]:
+        """
+        Особый метод для составления порядка значений некоторой категориальной фичи. Значения категориального признака
+        сортируются по возрастанию доли объектов +1 класса среди объектов выборки x_m с соответствующим значением
+        этого признака
+        :param x_m: некоторая выборка
+        :return: два листа, характеризующие сортировку категориальных признаков для текущего узла
+        """
 
         list_of_dict_of_norms = []
         sorted_norms = []
         list_of_dict_cat_to_int = []
         list_of_dict_int_to_cat = []
 
+        # Бежим по всем фичам и принимаемым значениям
         for id_feature, cat_feature_dict in enumerate(self.cat_feature_value_list):
 
             dict_of_c_sizes = {key: 0 for key in cat_feature_dict}
@@ -427,6 +454,8 @@ class DecisionTree:
             dict_cat_to_int = {}
             dict_int_to_cat = {}
 
+            # Сперва строим словарь с нормами - долей объектов первого класса среди объектов выборки с соответствующим
+            # значением этого признака
             for row in x_m:
                 row_c = row[self.categorical_feature_index_list[id_feature]]
                 dict_of_c_sizes[row_c] += 1
@@ -442,8 +471,10 @@ class DecisionTree:
 
                 dict_of_norms[key] = dict_of_c_first_class_sizes[key] / dict_of_c_sizes[key]
 
+            # Помещаем словарь в список (одна фича - один словарь)
             list_of_dict_of_norms.append(dict_of_norms)
 
+            # Сортируем нормы и формируем на их основе словари
             a = []
             for key in dict_of_norms:
                 a.append(dict_of_norms[key])
@@ -465,7 +496,14 @@ class DecisionTree:
         return list_of_dict_cat_to_int, list_of_dict_int_to_cat
 
     @staticmethod
-    def replace_categorical_str_to_int(data, dict_cat_to_int, index):
+    def replace_categorical_str_to_int(data: List, dict_cat_to_int: Dict[Any, int], index: int) -> List:
+        """
+        Метод для замены значений категориального признака в лице строки на инт
+        :param data: таблица с данными
+        :param dict_cat_to_int: словарь для перевода значений категориального признака из строк в инты
+        :param index: индекс фичи
+        :return: новая таблица, в категориальной фиче под индексом index которой находятся инты
+        """
         new_data = copy.deepcopy(data)
         for row_id, row in enumerate(new_data):
             cat = row[index]
@@ -474,7 +512,14 @@ class DecisionTree:
         return new_data
 
     @staticmethod
-    def replace_int_to_categorical_str(data, dict_int_to_cat, index):
+    def replace_int_to_categorical_str(data: List, dict_int_to_cat: Dict[int, Any], index: int) -> List:
+        """
+        Метод для замены значений категориального признака в лице строки на инт
+        :param data: таблица с данными
+        :param dict_int_to_cat: словарь для перевода значений категориального признака из интов в строки
+        :param index: индекс фичи
+        :return: новая таблица, в категориальной фиче под индексом index которой находятся строки
+        """
         new_data = copy.deepcopy(data)
         for row_id, row in enumerate(new_data):
             i = row[index]
