@@ -6,6 +6,8 @@ __pycache__/
 task_2/.idea/
 task_3/.idea/
 
+.idea/
+
 # C extensions
 *.so
 
