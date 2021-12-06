@@ -6,6 +6,9 @@ __pycache__/
 task_2/.idea/
 task_3/.idea/
 
+*.gz
+*docword*
+*enron*
 .idea/
 
 # C extensions
