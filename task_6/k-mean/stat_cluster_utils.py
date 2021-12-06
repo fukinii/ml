@@ -8,16 +8,53 @@ from functools import partial
 
 def calc_intra_cluster_distance(data, match_numbers):
     num_of_points = data.shape[0]
-    distance = 0
-    count = 0
+    distance_ = 0.
+    count_ = 0.
+
+    for i in range(2, num_of_points):
+        print(i, num_of_points)
+        # pool = multiprocessing.Pool(processes=8)
+        # a = range(i)
+        # out = pool.map(
+        #     partial(
+        #         calc_intra_cluster_distance_parall, match_numbers=match_numbers, data=data, i=i
+        #     ),
+        #              a)
+        # distance = np.array(out[0])
+        # count = np.array(out[1])
+        #
+        # distance_ += np.sum(distance)
+        # count_ += np.sum(count)
+        for j in range(i):
+            if match_numbers[i] == match_numbers[j]:
+                distance_ += calc_distance(data[i], data[j])
+                count_ += 1
+
+    return distance_ / count_
+
+
+def calc_intra_cluster_distance_parall(j, match_numbers, data, i):
+    distance = 0.
+    count = 0.
+
+    if match_numbers[i] == match_numbers[j]:
+        distance += calc_distance(data[i], data[j])
+        count += 1
+    return [distance, count]
+
+
+def calc_extra_cluster_distance(data, match_numbers):
+    num_of_points = data.shape[0]
+    distance = 0.
+    count = 0.
     for i in range(num_of_points):
 
         for j in range(i):
-            if match_numbers[i] == match_numbers[j]:
+            if match_numbers[i] != match_numbers[j]:
                 distance += calc_distance(data[i], data[j])
                 count += 1
 
-    return distance / count  # TODO: Понять, что на что делить
+    return distance / count
 
 
 def calc_distance(point1, point2):

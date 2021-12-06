@@ -4,7 +4,8 @@ import random
 from stat_cluster_utils import calc_centroids
 import pickle
 
-data_file = "docword.enron.txt"
+# data_file = "../docword.enron.txt"
+data_file = "../docword.kos.txt"
 
 description = np.loadtxt(data_file, max_rows=3, dtype=int)
 
@@ -13,7 +14,7 @@ word_dict_number = description[1]
 nonzero_counts = description[2]
 
 data = np.loadtxt(data_file, skiprows=3, dtype=int)
-vocab = np.loadtxt("vocab.enron.txt", dtype=str)
+vocab = np.loadtxt("../vocab.kos.txt", dtype=str)
 
 print("Данные прочитаны")
 
@@ -28,10 +29,10 @@ print("Построены центроиды")
 
 out = [centroids_coords, match_numbers]
 
-with open('Centroids.pickle', 'wb') as f:
+with open('Centroids5_kos.pickle', 'wb') as f:
     pickle.dump(out, f)
 
-# with open('Centroids.pickle', 'rb') as f:
+# with open('Centroids5.pickle', 'rb') as f:
 #     out = pickle.load(f)
 # centroids_coords = out[0]
 # match_numbers = out[1]
