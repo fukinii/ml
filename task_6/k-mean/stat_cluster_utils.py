@@ -6,6 +6,15 @@ import multiprocessing
 from functools import partial
 
 
+def build_task(data, word_dict_number, doc_number):
+    # task = np.zeros()
+
+    points = np.zeros((doc_number, word_dict_number))
+    for p in data:
+        points[p[0] - 1, p[1] - 1] = p[2]
+    return points
+
+
 def calc_intra_cluster_distance(data, match_numbers):
     num_of_points = data.shape[0]
     distance_ = 0.
@@ -65,16 +74,17 @@ def calc_center_of_mass(points):
     return np.sum(points, axis=0) / np.shape(points)[0]
 
 
-def calc_centroids(data, num_of_centroids, tolerance=1e0):
+def calc_centroids(data, num_of_centroids, tolerance=1e-2):
     num_of_points = data.shape[0]
     dim = data.shape[1]
 
     borders = np.zeros((dim, 2))
     for i in range(dim):
-        borders[i, 0] = np.min(data[:, i])
-        borders[i, 1] = np.max(data[:, i])
+        a = data[:, i]
+        borders[i, 0] = np.min(a)
+        borders[i, 1] = np.max(a)
 
-    centroids_coords = np.zeros((num_of_centroids, data.shape[1]))
+    centroids_coords = np.zeros((num_of_centroids, dim))
 
     for i in range(num_of_centroids):
         curr_centroid_coord = np.zeros(dim)
@@ -92,10 +102,9 @@ def calc_centroids(data, num_of_centroids, tolerance=1e0):
         previous_centroids_coords = np.copy(centroids_coords)
         solution.append(previous_centroids_coords)
 
-        pool = multiprocessing.Pool(processes=8)
-
-        match_numbers = np.array(pool.map(partial(match_parall, centroids_coords=centroids_coords), data))
-        # match_numbers = match(data, centroids_coords)
+        # pool = multiprocessing.Pool(processes=8)
+        # match_numbers = np.array(pool.map(partial(match_parall, centroids_coords=centroids_coords), data))
+        match_numbers = match(data, centroids_coords)
 
         match_numbers_in_time.append(np.copy(match_numbers))
 
@@ -104,25 +113,35 @@ def calc_centroids(data, num_of_centroids, tolerance=1e0):
             if np.shape(tmp)[0] != 0:
                 centroids_coords[centroid_idx] = calc_center_of_mass(data[match_numbers == centroid_idx])
 
-        unique_match_numbers = np.unique(match_numbers)
         err = np.amax(np.abs(previous_centroids_coords - centroids_coords))
         print("Кластеризация:", iteration, err)
 
         if err < tolerance:
+            unique_match_numbers = np.unique(match_numbers)
             if np.shape(unique_match_numbers)[0] < num_of_centroids:
                 arr = np.arange(num_of_centroids)
-                if arr[-1] != unique_match_numbers[-1]:
+                # print(arr, unique_match_numbers)
+                diff = np.setdiff1d(arr, unique_match_numbers)
+                # print(diff)
+
+                for id in diff:
                     for j in range(dim):
-                        centroids_coords[-1][j] = random.uniform(borders[j, 0], borders[j, 1])
-                    # centroids_coords[-1] = np.array([random.uniform(l1, l2), random.uniform(m1, m2)])
-                else:
-                    for i in arr:
-                        if np.unique(match_numbers)[i] != arr[i]:
-                            # impostor = np.arange(num_of_centroids)[i]
-                            # centroids_coords[i] = np.array([random.uniform(l1, l2), random.uniform(m1, m2)])
-                            for j in range(dim):
-                                centroids_coords[i][j] = random.uniform(borders[j, 0], borders[j, 1])
-                            break
+                        centroids_coords[id][j] = random.uniform(borders[j, 0], borders[j, 1])
+                a = previous_centroids_coords - centroids_coords
+                print(a[np.nonzero(a)])
+                # if arr[-1] != unique_match_numbers[-1]:
+                #     for j in range(dim):
+                #         centroids_coords[-1][j] = random.uniform(borders[j, 0], borders[j, 1])
+                #     # centroids_coords[-1] = np.array([random.uniform(l1, l2), random.uniform(m1, m2)])
+                # else:
+                #     for i in arr:
+                #         if np.unique(match_numbers)[i] != arr[i]:
+                #             # impostor = np.arange(num_of_centroids)[i]
+                #             # centroids_coords[i] = np.array([random.uniform(l1, l2), random.uniform(m1, m2)])
+                #             for j in range(dim):
+                #                 centroids_coords[i][j] = random.uniform(borders[j, 0], borders[j, 1])
+                #             break
+                print("Не нашли себя центроидов:", num_of_centroids - np.shape(unique_match_numbers)[0])
                 print("Данные скорректированы")
             else:
                 print("Расчет окончен")

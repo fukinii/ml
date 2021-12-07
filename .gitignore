@@ -6,6 +6,8 @@ __pycache__/
 task_2/.idea/
 task_3/.idea/
 
+*matrix_dist_kos*
+
 *.gz
 *docword*
 *enron*

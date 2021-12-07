@@ -16,3 +16,14 @@
 #
 #     print(N)
 #     print(N)
+
+import numpy as np
+
+a = np.array([[0, 1], [2, 3]])
+
+mask = a > 1
+b = (a > 1).astype(int)
+
+print(mask)
+print(a[mask])
+print(a*((a > 1).astype(int)))

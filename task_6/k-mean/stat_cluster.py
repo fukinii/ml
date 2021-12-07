@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from stat_cluster_utils import calc_centroids
+from stat_cluster_utils import calc_centroids, build_task
 import pickle
 
 # data_file = "../docword.enron.txt"
@@ -14,17 +14,20 @@ word_dict_number = description[1]
 nonzero_counts = description[2]
 
 data = np.loadtxt(data_file, skiprows=3, dtype=int)
+# vocab = np.loadtxt("../vocab.enron.txt", dtype=str)
 vocab = np.loadtxt("../vocab.kos.txt", dtype=str)
 
 print("Данные прочитаны")
 
-num_of_centroids = 5
+num_of_centroids = 100
 color_list = {}
 
 for i in range(num_of_centroids):
     color_list[i] = np.array([np.array([random.uniform(0.5, 1.), random.uniform(0.5, 1.), random.uniform(0.5, 1.)])])
 
-centroids_coords, match_numbers = calc_centroids(data, num_of_centroids=num_of_centroids)
+point = build_task(data, word_dict_number, doc_number)
+
+centroids_coords, match_numbers = calc_centroids(point, num_of_centroids=num_of_centroids)
 print("Построены центроиды")
 
 out = [centroids_coords, match_numbers]
