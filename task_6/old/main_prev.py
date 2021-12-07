@@ -107,6 +107,7 @@ ani = matplotlib.animation.FuncAnimation(fig, update, len(solution),
                                                 num_of_centroids, l1, l2, m1, m2, ax_anim, markers_list],
                                          interval=1000,
                                          blit=False)
+# ani.save("clustering.gif", writer='imagemagick', fps=1)
 plt.show()
 
 fig_1 = plt.figure(figsize=(16, 10))
@@ -121,5 +122,7 @@ for i in range(num_of_centroids):
                c=color_list[i])
 
     ax.scatter(centroids_coords[i, 0], centroids_coords[i, 1], c=color_list[i], marker='*', s=200)
+
+
 
 plt.show()

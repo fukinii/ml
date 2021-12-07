@@ -15,28 +15,18 @@ def build_task(data, word_dict_number, doc_number):
     return points
 
 
-def calc_intra_cluster_distance(data, match_numbers):
+def calc_intra_cluster_distance(data, match_numbers, matrix_dist_kos):
     num_of_points = data.shape[0]
     distance_ = 0.
     count_ = 0.
 
     for i in range(2, num_of_points):
-        print(i, num_of_points)
-        # pool = multiprocessing.Pool(processes=8)
-        # a = range(i)
-        # out = pool.map(
-        #     partial(
-        #         calc_intra_cluster_distance_parall, match_numbers=match_numbers, data=data, i=i
-        #     ),
-        #              a)
-        # distance = np.array(out[0])
-        # count = np.array(out[1])
-        #
-        # distance_ += np.sum(distance)
-        # count_ += np.sum(count)
+        # print(i, num_of_points)
+
         for j in range(i):
             if match_numbers[i] == match_numbers[j]:
-                distance_ += calc_distance(data[i], data[j])
+                # distance_ += calc_distance(data[i], data[j])
+                distance_ += matrix_dist_kos[i, j]
                 count_ += 1
 
     return distance_ / count_
@@ -52,18 +42,21 @@ def calc_intra_cluster_distance_parall(j, match_numbers, data, i):
     return [distance, count]
 
 
-def calc_extra_cluster_distance(data, match_numbers):
+def calc_extra_cluster_distance(data, match_numbers, matrix_dist_kos):
     num_of_points = data.shape[0]
-    distance = 0.
-    count = 0.
-    for i in range(num_of_points):
+    distance_ = 0.
+    count_ = 0.
+
+    for i in range(2, num_of_points):
+        # print(i, num_of_points)
 
         for j in range(i):
             if match_numbers[i] != match_numbers[j]:
-                distance += calc_distance(data[i], data[j])
-                count += 1
+                # distance_ += calc_distance(data[i], data[j])
+                distance_ += matrix_dist_kos[i, j]
+                count_ += 1
 
-    return distance / count
+    return distance_ / count_
 
 
 def calc_distance(point1, point2):
@@ -98,12 +91,11 @@ def calc_centroids(data, num_of_centroids, tolerance=1e-2):
     match_numbers = np.zeros(num_of_points, dtype=int)
 
     iteration = 0
+    is_broken = False
     while 1:
         previous_centroids_coords = np.copy(centroids_coords)
         solution.append(previous_centroids_coords)
 
-        # pool = multiprocessing.Pool(processes=8)
-        # match_numbers = np.array(pool.map(partial(match_parall, centroids_coords=centroids_coords), data))
         match_numbers = match(data, centroids_coords)
 
         match_numbers_in_time.append(np.copy(match_numbers))
@@ -123,10 +115,12 @@ def calc_centroids(data, num_of_centroids, tolerance=1e-2):
                 # print(arr, unique_match_numbers)
                 diff = np.setdiff1d(arr, unique_match_numbers)
                 # print(diff)
-
+                random_point = np.random.choice(diff, size=1)
                 for id in diff:
                     for j in range(dim):
-                        centroids_coords[id][j] = random.uniform(borders[j, 0], borders[j, 1])
+                        centroids_coords[id][j] = data[random_point[0]][j] + random.uniform(0., 1e-5)
+                    # for j in range(dim):
+                    #     centroids_coords[id][j] = random.uniform(borders[j, 0], borders[j, 1])
                 a = previous_centroids_coords - centroids_coords
                 print(a[np.nonzero(a)])
                 # if arr[-1] != unique_match_numbers[-1]:
@@ -147,8 +141,12 @@ def calc_centroids(data, num_of_centroids, tolerance=1e-2):
                 print("Расчет окончен")
                 break
         iteration += 1
+        if iteration > 150:
+            is_broken = True
+            break
 
-    return centroids_coords, match_numbers
+
+    return centroids_coords, match_numbers, is_broken
 
 
 def match(data, centroids_coords):
