@@ -60,10 +60,12 @@ ax.grid()
 # plt.hist(res_array_c[:, 1], bins=20)
 for i in range(len(res_array)):
     # ax.scatter(res_array[i][0], res_array[i][0], c='r', label=0)
-    # ax.scatter(res_array[i][0], res_array[i][1], c='m', label=1)
-    # ax.scatter(res_array[i][0], res_array[i][2], c='g', label=2)
-    ax.scatter(res_array[i][0], res_array[i][3], c='b')
+    # ax.scatter(res_array[i][0], res_array[i][1], c='m')
+    ax.scatter(res_array[i][0], res_array[i][2], c='g')
+    # ax.scatter(res_array[i][0], res_array[i][3], c='b')
 ax.legend()
+ax.set_title("Extra")
+# plt.savefig("Extra.png")
 plt.show()
 # for i in range(res_array.shape[0]):
 #     ax.scatter(data[:, 0][match_numbers == i], data[:, 1][match_numbers == i],
