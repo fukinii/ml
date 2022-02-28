@@ -3,6 +3,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+./*/*/test1/*
+./*/*/train/*
+./*/dog*
+
+sem_2/task_1/test1/
+sem_2/task_1/train/
+sem_2/dogs-vs-cats/
+sem_2/task_1/Untitled.ipynb
+
+sem_2/task_1/imagenet_classes.txt
+
+./*/*/.ipynb_checkpoints*
+
 task_2/.idea/
 task_3/.idea/
 
