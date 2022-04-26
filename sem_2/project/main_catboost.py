@@ -7,12 +7,12 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report, pre
 list_of_datasets = list_datasets()
 print(list_of_datasets)
 
-images, labels = extract_training_samples('mnist')
+images, labels = extract_training_samples('letters')
 
 print(images.shape)
 
-# images = images[:10000]
-# labels = labels[:10000]
+# images = images[:100000]
+# labels = labels[:100000]
 
 images = np.reshape(images, (images.shape[0], -1))
 
@@ -27,10 +27,10 @@ eval_dataset = Pool(data=X_test,
                     label=y_test,
                     cat_features=cat_features)
 
-model = CatBoostClassifier(iterations=1000,
+model = CatBoostClassifier(iterations=5000,
                            learning_rate=1e-1,
-                           depth=2,
-                           loss_function='MultiClass')
+                           depth=3)
+                           # loss_function='MultiClass')
 
 # Fit model
 model.fit(train_dataset)
@@ -42,9 +42,9 @@ f1_micro = f1_score(y_test, preds_class, average='micro')
 f1_macro = f1_score(y_test, preds_class, average='macro')
 y_test_pool = Pool(preds_class, y_test)
 
-target_names = ['number 0', 'number 1', 'number 2', 'number 3', 'number 4', 'number 5', 'number 6', 'number 7',
-                'number 8', 'number 9']
-print(classification_report(y_test, preds_class, target_names=target_names))
+# target_names = ['number 0', 'number 1', 'number 2', 'number 3', 'number 4', 'number 5', 'number 6', 'number 7',
+#                 'number 8', 'number 9']
+print(classification_report(y_test, preds_class))
 print("++++++++++++++++++++++++++++++++++++++++++++")
 
 
