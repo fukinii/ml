@@ -1,5 +1,5 @@
 import numpy as np
-from emnist import extract_training_samples
+from emnist import extract_training_samples, list_datasets
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
