@@ -1,8 +1,5 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-import pickle
 
 path = "/home/fukin/ml/homework/ml/sem_2/project/log.csv"
 
@@ -29,12 +26,6 @@ acc = values[:, 1]
 val_acc = values[:, 3]
 loss = values[:, 2]
 val_loss = values[:, 4]
-
-# epochs = df.columns[0]
-# acc = df.columns[1]
-# val_acc = df.columns[3]
-# loss = df.columns[2]
-# val_loss = df.columns[4]
 
 plotgraph(epochs, acc, val_acc, "Validation", "accuracy")
 plotgraph(epochs, loss, val_loss, "Validation", "loss")
