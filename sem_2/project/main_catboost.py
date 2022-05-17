@@ -11,26 +11,27 @@ images, labels = extract_training_samples('letters')
 
 print(images.shape)
 
-# images = images[:100000]
-# labels = labels[:100000]
+# images = images[:10000]
+# labels = labels[:10000]
 
 images = np.reshape(images, (images.shape[0], -1))
 
 X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.33, random_state=42)
 
-cat_features = list(range(10))
+# cat_features = list(range(10))
 train_dataset = Pool(data=X_train,
-                     label=y_train,
-                     cat_features=cat_features)
+                     label=y_train)
 
 eval_dataset = Pool(data=X_test,
-                    label=y_test,
-                    cat_features=cat_features)
+                    label=y_test)
 
-model = CatBoostClassifier(iterations=5000,
-                           learning_rate=1e-1,
-                           depth=3)
-                           # loss_function='MultiClass')
+ref_iter = 100
+ref_learning_rate = 0.1
+ref_depth = 6
+
+model = CatBoostClassifier(iterations=350,
+                           learning_rate=ref_learning_rate,
+                           depth=ref_depth)
 
 # Fit model
 model.fit(train_dataset)
