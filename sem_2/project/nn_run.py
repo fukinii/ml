@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import tensorflow as tf
+from sklearn.metrics import classification_report
+
 from sklearn.model_selection import train_test_split
 
 from keras.models import Sequential
@@ -63,21 +66,43 @@ model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
+# model = tf.keras.applications.InceptionV3(
+#     include_top=True,
+#     weights=None,
+#     input_tensor=None,
+#     input_shape=(28, 28, 1),
+#     pooling=None,
+#     classes=26,
+# )
+#
+# model.summary()
+# model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+a = 1
+
 csv_logger = CSVLogger('log.csv', append=True, separator=';')
 history = model.fit(X_train, train_y, epochs=10, batch_size=512, verbose=1,
                     validation_data=(val_x, val_y), callbacks=[csv_logger])
 
 
 # plot accuracy and loss
-def plotgraph(epochs, acc, val_acc, savefig):
+def plotgraph(epochs, acc, val_acc, is_acc, pic_name=None):
     # Plot training & validation accuracy values
+    print(acc, val_acc)
     plt.plot(epochs, acc, 'b')
     plt.plot(epochs, val_acc, 'r')
-    plt.title('Model accuracy')
-    plt.ylabel('Accuracy')
+    plt.grid()
+    if is_acc:
+        plt.title('Model accuracy')
+        plt.ylabel('Accuracy')
+    else:
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(savefig)
+    if pic_name is not None:
+        plt.savefig(pic_name)
     plt.show()
 
 # ['accuracy', 'loss', 'val_accuracy', 'val_loss']
@@ -87,14 +112,16 @@ loss = history.history['loss']
 val_loss = history.history['val_loss']
 epochs = range(1, len(acc) + 1)
 
-plotgraph(epochs, acc, val_acc, "Validation accuracy")
-plotgraph(epochs, loss, val_loss, "Validation loss")
+plotgraph(epochs, acc, val_acc, True, "Custom network validation accuracy")
+plotgraph(epochs, loss, val_loss, False, "Custom network validation loss")
 
 score = model.evaluate(X_test, test_y, verbose=0)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
 
 y_pred = model.predict(X_test)
-y_pred = (y_pred > 0.5)
+# y_pred = (y_pred > 0.5)
 
-cm = metrics.confusion_matrix(test_y.argmax(axis=1), y_pred.argmax(axis=1))
+# cm = metrics.confusion_matrix(test_y.argmax(axis=1), y_pred.argmax(axis=1))
+print(classification_report(y_test, y_pred))
+# print(cm)
