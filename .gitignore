@@ -13,6 +13,8 @@ sem_2/dogs-vs-cats/
 sem_2/task_1/Untitled.ipynb
 
 sem_2/task_1/imagenet_classes.txt
+sem_2/project/nn_models_5kfolds.pickle
+sem_2/project/nn_models_5kfolds_Adam.pickle
 
 ./*/*/.ipynb_checkpoints*
 
