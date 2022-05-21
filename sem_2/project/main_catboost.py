@@ -38,7 +38,7 @@ model.fit(train_dataset)
 # Get predicted classes
 preds_class = model.predict(eval_dataset)
 
-print(a)
+# print(a)
 
 acc = accuracy_score(preds_class, y_test)
 f1_micro = f1_score(y_test, preds_class, average='micro')
